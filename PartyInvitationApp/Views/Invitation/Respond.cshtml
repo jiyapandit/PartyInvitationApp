@@ -1,0 +1,29 @@
+﻿@* @model PartyInvitationApp.Models.Invitation *@
+@* <h2>RSVP</h2> *@
+@* <p>Hello @Model.GuestName, please confirm your attendance.</p> *@
+
+@* <form asp-action="Respond" method="post"> *@
+@*     <input type="hidden" asp-for="Id" /> *@
+@*     <label> *@
+@*         <input type="radio" name="status" value="RespondedYes" required /> Yes *@
+@*     </label> *@
+@*     <label> *@
+@*         <input type="radio" name="status" value="RespondedNo" required /> No *@
+@*     </label> *@
+@*     <button type="submit" class="btn btn-primary">Submit</button> *@
+@* </form> *@
+@model PartyInvitationApp.Models.Invitation
+
+<h2>RSVP</h2>
+<p>Hello @Model.GuestName, please confirm your attendance.</p>
+
+<form asp-action="Respond" method="post">
+    <input type="hidden" asp-for="Id" />
+    <label>
+        <input type="radio" name="status" value="RespondedYes" required /> Yes
+    </label>
+    <label>
+        <input type="radio" name="status" value="RespondedNo" required /> No
+    </label>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>

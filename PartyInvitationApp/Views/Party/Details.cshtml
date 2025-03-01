@@ -1,0 +1,36 @@
+﻿@model PartyInvitationApp.Models.Party
+<h2>Party Details</h2>
+<p><strong>Description:</strong> @Model.Description</p>
+<p><strong>Date:</strong> @Model.EventDate.ToShortDateString()</p>
+<p><strong>Location:</strong> @Model.Location</p>
+
+<h3>Invitations</h3>
+<a asp-action="Create" asp-controller="Invitation" asp-route-partyId="@Model.Id" class="btn btn-primary">Add Invitation</a>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Guest</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var invite in Model.Invitations)
+        {
+            <tr>
+                <td>@invite.GuestName</td>
+                <td>@invite.GuestEmail</td>
+                <td>@invite.Status</td>
+                <td>
+                    @if (invite.Status == InvitationStatus.InviteNotSent)
+                    {
+                        <a asp-action="SendInvite" asp-controller="Invitation" asp-route-id="@invite.Id" class="btn btn-success">Send Email</a>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+s

@@ -1,0 +1,30 @@
+﻿@model IEnumerable<PartyInvitationApp.Models.Party>
+@{
+    ViewData["Title"] = "Parties";
+}
+<h2>Parties</h2>
+<a asp-action="Create" class="btn btn-primary">Create New Party</a>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Description</th>
+            <th>Event Date</th>
+            <th>Location</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var party in Model)
+        {
+            <tr>
+                <td>@party.Description</td>
+                <td>@party.EventDate.ToShortDateString()</td>
+                <td>@party.Location</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@party.Id" class="btn btn-warning">Edit</a>
+                    <a asp-action="Details" asp-route-id="@party.Id" class="btn btn-info">Details</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,51 @@
+﻿@model List<PartyInvitationApp.Models.Invitation>
+
+<h2>Guest List</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Guest Name</th>
+            <th>Status</th>
+            <th>RSVP Response</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var invitation in Model)
+        {
+            <tr>
+                <td>@invitation.GuestName</td>
+                <td>@invitation.Status</td>
+                <td>
+                    @if (invitation.Status == InvitationStatus.InviteSent)
+                    {
+                        <span class="text-info">Invitation Sent</span>
+                    }
+                    else if (invitation.Status == InvitationStatus.RespondedYes)
+                    {
+                        <span class="text-success">Attending</span>
+                    }
+                    else if (invitation.Status == InvitationStatus.RespondedNo)
+                    {
+                        <span class="text-danger">Not Attending</span>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Pagination Controls -->
+<div class="pagination">
+    @if (ViewBag.CurrentPage > 1)
+    {
+        <a href="@Url.Action("GuestList", new { partyId = ViewBag.PartyId, pageNumber = ViewBag.CurrentPage - 1, pageSize = 10 })" class="btn btn-primary">Previous</a>
+    }
+
+    <span>Page @ViewBag.CurrentPage of @ViewBag.TotalPages</span>
+
+    @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+    {
+        <a href="@Url.Action("GuestList", new { partyId = ViewBag.PartyId, pageNumber = ViewBag.CurrentPage + 1, pageSize = 10 })" class="btn btn-primary">Next</a>
+    }
+</div>
