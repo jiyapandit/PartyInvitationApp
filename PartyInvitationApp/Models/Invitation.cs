@@ -15,11 +15,10 @@ namespace PartyInvitationApp.Models
         public string GuestEmail { get; set; }
 
         [Required]
-        public int PartyId { get; set; }  // This should not be nullable
+        public int PartyId { get; set; }
 
         [ForeignKey("PartyId")]
-        public virtual Party Party { get; set; }  // This allows EF to map it properly
-
+        public virtual Party? Party { get; set; }  // ✅ Make this nullable
         public InvitationStatus Status { get; set; } = InvitationStatus.InviteNotSent;
     }
 }

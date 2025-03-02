@@ -20,6 +20,8 @@ namespace PartyInvitationApp.Controllers
             _emailService = emailService;
         }
 
+
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(int partyId, Invitation invitation)
@@ -37,10 +39,8 @@ namespace PartyInvitationApp.Controllers
                 return NotFound();
             }
 
-            // ✅ Make sure the party ID is set
+            // ✅ Ensure party is explicitly set
             invitation.PartyId = partyId;
-
-            // ✅ Explicitly attach the party reference
             invitation.Party = party;
 
             // ✅ Debugging ModelState Errors
@@ -63,28 +63,9 @@ namespace PartyInvitationApp.Controllers
             await _context.SaveChangesAsync();
             Console.WriteLine("✅ Invitation saved successfully!");
 
-            // ✅ Send email
-            var responseUrl = Url.Action("Respond", "Invitation", new { id = invitation.Id }, Request.Scheme);
-            string emailBody = $@"
-        <h2>Hello {invitation.GuestName},</h2>
-        <p>You are invited to <strong>{party.Description}</strong> on {party.DateOfParty.ToShortDateString()} at {party.Location}.</p>
-        <p><a href='{responseUrl}' style='display: inline-block; padding: 10px; background: #007bff; color: white; text-decoration: none; border-radius: 5px;'>Click here to RSVP</a></p>";
-
-            bool sent = await _emailService.SendEmailAsync(invitation.GuestEmail, "You're Invited!", emailBody);
-            if (sent)
-            {
-                invitation.Status = InvitationStatus.InviteSent;
-                _context.Update(invitation);
-                await _context.SaveChangesAsync();
-                Console.WriteLine("✅ Email sent successfully & invitation status updated.");
-            }
-            else
-            {
-                Console.WriteLine("❌ Email sending failed!");
-            }
-
             return RedirectToAction("Manage", "Party", new { id = partyId });
         }
+
 
 
 
