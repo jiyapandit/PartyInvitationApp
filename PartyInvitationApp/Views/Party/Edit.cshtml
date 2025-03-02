@@ -1,7 +1,9 @@
 ﻿@model PartyInvitationApp.Models.Party
 @{
+    Layout = "_Layout.cshtml";
     ViewData["Title"] = "Edit Party";
 }
+
 <h2>Edit Party</h2>
 <form asp-action="Edit" method="post">
     <input type="hidden" asp-for="Id" />
@@ -10,12 +12,13 @@
         <input asp-for="Description" class="form-control" required />
     </div>
     <div class="form-group">
-        <label asp-for="EventDate"></label>
-        <input asp-for="EventDate" type="date" class="form-control" required />
+        <label>Date of Party</label>
+        <input asp-for="DateOfParty" type="date" class="form-control" />
     </div>
     <div class="form-group">
         <label asp-for="Location"></label>
         <input asp-for="Location" class="form-control" />
     </div>
-    <button type="submit" class="btn btn-warning">Save Changes</button>
+    <button type="submit" class="btn btn-warning">Save</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
 </form>

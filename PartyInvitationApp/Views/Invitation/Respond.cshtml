@@ -1,29 +1,17 @@
-﻿@* @model PartyInvitationApp.Models.Invitation *@
-@* <h2>RSVP</h2> *@
-@* <p>Hello @Model.GuestName, please confirm your attendance.</p> *@
+﻿@model PartyInvitationApp.Models.Invitation
+@{
+    ViewData["Title"] = "Invitation response";
+}
 
-@* <form asp-action="Respond" method="post"> *@
-@*     <input type="hidden" asp-for="Id" /> *@
-@*     <label> *@
-@*         <input type="radio" name="status" value="RespondedYes" required /> Yes *@
-@*     </label> *@
-@*     <label> *@
-@*         <input type="radio" name="status" value="RespondedNo" required /> No *@
-@*     </label> *@
-@*     <button type="submit" class="btn btn-primary">Submit</button> *@
-@* </form> *@
-@model PartyInvitationApp.Models.Invitation
-
-<h2>RSVP</h2>
-<p>Hello @Model.GuestName, please confirm your attendance.</p>
+<h2>Invitation response</h2>
+<p>You have been invited to the "<strong>@Model.Party.Description</strong>" party!</p>
+<p>Hey @Model.GuestName, you have been invited to the gathering at <strong>@Model.Party.Location</strong> on <strong>@Model.Party.DateOfParty.ToShortDateString()</strong>.</p>
 
 <form asp-action="Respond" method="post">
     <input type="hidden" asp-for="Id" />
-    <label>
-        <input type="radio" name="status" value="RespondedYes" required /> Yes
-    </label>
-    <label>
-        <input type="radio" name="status" value="RespondedNo" required /> No
-    </label>
-    <button type="submit" class="btn btn-primary">Submit</button>
+    <div>
+        <input type="radio" name="rsvp" value="yes" required /> Yes
+        <input type="radio" name="rsvp" value="no" required /> No
+    </div>
+    <button type="submit" class="btn btn-primary">Submit response</button>
 </form>

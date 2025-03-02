@@ -12,7 +12,7 @@ namespace PartyInvitationApp.Models
         public string Description { get; set; }
 
         [Required]
-        public DateTime EventDate { get; set; }
+        public DateTime DateOfParty { get; set; }
 
         public string Location { get; set; }
 

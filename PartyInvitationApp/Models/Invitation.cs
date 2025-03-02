@@ -1,23 +1,25 @@
-﻿// Models/Invitation.cs
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PartyInvitationApp.Models
 {
     public class Invitation
     {
+        [Key]
         public int Id { get; set; }
 
         [Required]
         public string GuestName { get; set; }
 
-        [Required]
-        [EmailAddress]
+        [Required, EmailAddress]
         public string GuestEmail { get; set; }
 
-        public InvitationStatus Status { get; set; } = InvitationStatus.InviteNotSent;
+        [Required]
+        public int PartyId { get; set; }  // This should not be nullable
 
-        public int PartyId { get; set; }
-        public Party Party { get; set; }
-        
+        [ForeignKey("PartyId")]
+        public virtual Party Party { get; set; }  // This allows EF to map it properly
+
+        public InvitationStatus Status { get; set; } = InvitationStatus.InviteNotSent;
     }
 }

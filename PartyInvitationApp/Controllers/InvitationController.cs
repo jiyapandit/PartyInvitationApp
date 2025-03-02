@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using PartyInvitationApp.Data;
 using PartyInvitationApp.Models;
 using PartyInvitationApp.Services;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 
 namespace PartyInvitationApp.Controllers
 {
@@ -13,97 +13,197 @@ namespace PartyInvitationApp.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly EmailService _emailService;
-        private readonly ILogger<InvitationController> _logger;
 
-        public InvitationController(ApplicationDbContext context, EmailService emailService, ILogger<InvitationController> logger)
+        public InvitationController(ApplicationDbContext context, EmailService emailService)
         {
             _context = context;
             _emailService = emailService;
-            _logger = logger;
         }
 
-        // GET: Invitation/Create
-        public IActionResult Create(int partyId)
-        {
-            ViewBag.PartyId = partyId;
-            return View();
-        }
-
-        // POST: Invitation/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Invitation invitation)
+        public async Task<IActionResult> Create(int partyId, Invitation invitation)
         {
-            if (ModelState.IsValid)
+            Console.WriteLine("=== InvitationController.Create CALLED ===");
+            Console.WriteLine($"partyId = {partyId}, GuestName = {invitation.GuestName}, GuestEmail = {invitation.GuestEmail}");
+
+            var party = await _context.Parties
+                .Include(p => p.Invitations)
+                .FirstOrDefaultAsync(p => p.Id == partyId);
+
+            if (party == null)
             {
-                // Save the invitation to the database
-                _context.Add(invitation);
-                await _context.SaveChangesAsync();
-
-                // Log the invitation creation
-                _logger.LogInformation($"Invitation created for {invitation.GuestEmail}");
-
-                // Send the invitation email
-                var responseUrl = Url.Action("Respond", "Invitation", new { id = invitation.Id }, Request.Scheme);
-                string emailBody = $"Hello {invitation.GuestName},<br/><br/>" +
-                                   $"You are invited to a party. Click <a href='{responseUrl}'>here</a> to respond.";
-
-                try
-                {
-                    await _emailService.SendEmailAsync(invitation.GuestEmail, "You're Invited!", emailBody);
-
-                    // Log if email is sent successfully
-                    _logger.LogInformation($"Invitation email sent to {invitation.GuestEmail}");
-                }
-                catch (Exception ex)
-                {
-                    // Log the error
-                    _logger.LogError($"Error sending email to {invitation.GuestEmail}: {ex.Message}");
-                    ModelState.AddModelError("", "Failed to send the invitation email.");
-                }
-
-                // After saving and sending email, redirect to the Respond page to collect response
-                return RedirectToAction("Respond", "Invitation", new { id = invitation.Id });
+                Console.WriteLine("❌ No party found with that ID!");
+                return NotFound();
             }
 
-            // If the model is invalid, redisplay the form
-            ViewBag.PartyId = invitation.PartyId;
-            return View(invitation);
+            // ✅ Make sure the party ID is set
+            invitation.PartyId = partyId;
+
+            // ✅ Explicitly attach the party reference
+            invitation.Party = party;
+
+            // ✅ Debugging ModelState Errors
+            Console.WriteLine($"✅ ModelState Valid: {ModelState.IsValid}");
+            if (!ModelState.IsValid)
+            {
+                Console.WriteLine("❌ ModelState Errors:");
+                foreach (var key in ModelState.Keys)
+                {
+                    foreach (var error in ModelState[key].Errors)
+                    {
+                        Console.WriteLine($" - {key}: {error.ErrorMessage}");
+                    }
+                }
+                return RedirectToAction("Manage", "Party", new { id = partyId });
+            }
+
+            // ✅ Save the Invitation to the database
+            _context.Invitations.Add(invitation);
+            await _context.SaveChangesAsync();
+            Console.WriteLine("✅ Invitation saved successfully!");
+
+            // ✅ Send email
+            var responseUrl = Url.Action("Respond", "Invitation", new { id = invitation.Id }, Request.Scheme);
+            string emailBody = $@"
+        <h2>Hello {invitation.GuestName},</h2>
+        <p>You are invited to <strong>{party.Description}</strong> on {party.DateOfParty.ToShortDateString()} at {party.Location}.</p>
+        <p><a href='{responseUrl}' style='display: inline-block; padding: 10px; background: #007bff; color: white; text-decoration: none; border-radius: 5px;'>Click here to RSVP</a></p>";
+
+            bool sent = await _emailService.SendEmailAsync(invitation.GuestEmail, "You're Invited!", emailBody);
+            if (sent)
+            {
+                invitation.Status = InvitationStatus.InviteSent;
+                _context.Update(invitation);
+                await _context.SaveChangesAsync();
+                Console.WriteLine("✅ Email sent successfully & invitation status updated.");
+            }
+            else
+            {
+                Console.WriteLine("❌ Email sending failed!");
+            }
+
+            return RedirectToAction("Manage", "Party", new { id = partyId });
         }
 
-        // GET: Invitation/Respond/5
+
+
+
+        // POST: /Invitation/SendAll?partyId=5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SendAll(int partyId)
+        {
+            Console.WriteLine("=== InvitationController.SendAll CALLED ===");
+            Console.WriteLine($"partyId = {partyId}");
+
+            var party = await _context.Parties
+                .Include(p => p.Invitations)
+                .FirstOrDefaultAsync(p => p.Id == partyId);
+
+            if (party == null)
+            {
+                Console.WriteLine("No party found with that ID!");
+                return NotFound();
+            }
+
+            var unsentInvites = party.Invitations
+                .Where(i => i.Status == InvitationStatus.InviteNotSent)
+                .ToList();
+
+            Console.WriteLine($"Found {unsentInvites.Count} unsent invites.");
+
+            foreach (var invite in unsentInvites)
+            {
+                var responseUrl = Url.Action("Respond", "Invitation", new { id = invite.Id }, Request.Scheme);
+                string body = $"Hello {invite.GuestName},<br/>" +
+                              $"You are invited to \"{party.Description}\" on {party.DateOfParty.ToShortDateString()}, at {party.Location}.<br/>" +
+                              $"<a href='{responseUrl}'>Click here</a> to respond.";
+
+                bool success = await _emailService.SendEmailAsync(invite.GuestEmail, "You Are Invited!", body);
+                Console.WriteLine($"Sending to {invite.GuestEmail}: success = {success}");
+
+                if (success)
+                {
+                    invite.Status = InvitationStatus.InviteSent;
+                    _context.Update(invite);
+                }
+            }
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                Console.WriteLine("Updated unsent invites to InviteSent where successful.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving after SendAll: {ex.Message}");
+            }
+
+            return RedirectToAction("Manage", "Party", new { id = partyId });
+        }
+
+        // GET: /Invitation/Respond/{id}
+        [HttpGet]
+        [Route("Invitation/Respond/{id}")]
         public async Task<IActionResult> Respond(int id)
         {
-            var invitation = await _context.Invitations.FindAsync(id);
-            if (invitation == null) return NotFound();
+            Console.WriteLine("=== InvitationController.Respond (GET) CALLED ===");
+            var invitation = await _context.Invitations
+                .Include(i => i.Party)
+                .FirstOrDefaultAsync(i => i.Id == id);
+
+            if (invitation == null)
+            {
+                Console.WriteLine("No invitation found for that ID!");
+                return NotFound();
+            }
 
             return View(invitation);
         }
 
-        // POST: Invitation/Respond/5
+        // POST: /Invitation/Respond/{id}
         [HttpPost]
-        public async Task<IActionResult> Respond(int id, InvitationStatus status)
+        [ValidateAntiForgeryToken]
+        [Route("Invitation/Respond/{id}")]
+        public async Task<IActionResult> Respond(int id, [FromForm] string rsvp)
         {
-            var invitation = await _context.Invitations.FindAsync(id);
-            if (invitation == null) return NotFound();
+            Console.WriteLine("=== InvitationController.Respond (POST) CALLED ===");
+            Console.WriteLine($"id = {id}, rsvp = {rsvp}");
 
-            // Update the invitation status based on the response
-            invitation.Status = status;
+            var invitation = await _context.Invitations
+                .Include(i => i.Party)
+                .FirstOrDefaultAsync(i => i.Id == id);
+
+            if (invitation == null)
+            {
+                Console.WriteLine("No invitation found for that ID!");
+                return NotFound();
+            }
+
+            invitation.Status = (rsvp == "yes") ? InvitationStatus.RespondedYes : InvitationStatus.RespondedNo;
             _context.Update(invitation);
             await _context.SaveChangesAsync();
 
-            // Redirect to the party details or guest list after response
-            return RedirectToAction("Index", "Party");
+            return View("ThankYou", invitation);
         }
 
-        // GET: Invitation/GuestList/5
-        public IActionResult GuestList(int partyId)
+        // GET: /Invitation/GuestList?partyId=5
+        public async Task<IActionResult> GuestList(int partyId)
         {
-            var guests = _context.Invitations
-                                 .Where(i => i.PartyId == partyId)
-                                 .ToList();
+            Console.WriteLine("=== InvitationController.GuestList CALLED ===");
+            var party = await _context.Parties
+                .Include(p => p.Invitations)
+                .FirstOrDefaultAsync(p => p.Id == partyId);
 
-            return View(guests);  // Display the list of guests and their responses
+            if (party == null)
+            {
+                Console.WriteLine("No party found for that ID!");
+                return NotFound();
+            }
+
+            var invites = party.Invitations;
+            return View("GuestList", invites);
         }
     }
 }

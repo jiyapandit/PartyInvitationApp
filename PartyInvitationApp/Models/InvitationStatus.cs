@@ -1,5 +1,4 @@
-﻿// Models/InvitationStatus.cs
-namespace PartyInvitationApp.Models
+﻿namespace PartyInvitationApp.Models
 {
     public enum InvitationStatus
     {
