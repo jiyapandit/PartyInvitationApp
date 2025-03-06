@@ -1,40 +1,33 @@
 ﻿@model List<PartyInvitationApp.Models.Party>
 @{
-    Layout = "_Layout.cshtml";
     ViewData["Title"] = "All Parties";
 }
 
-<h2>All Parties</h2>
-<p>
-    <a asp-action="Create" class="btn btn-primary">Create New Party</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Description</th>
-            <th>Date</th>
-            <th>Location</th>
-            <th># Invites</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var party in Model)
-        {
-            <tr>
-                <td>@party.Description</td>
-                <td>@party.DateOfParty.ToShortDateString()</td>
-                <td>@party.Location</td>
-                <td>@party.Invitations.Count</td>
-                <td>
+<h2 class="text-center mb-4">🎊 All Parties</h2>
+<div class="d-flex justify-content-end mb-3">
+    <a asp-action="Create" class="btn btn-primary">+ Create New Party</a>
+</div>
+
+<div class="row">
+    @foreach (var party in Model)
+    {
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">@party.Description</h5>
+                    <p class="card-text">
+                        📅 <strong>@party.DateOfParty.ToShortDateString()</strong> <br>
+                        📍 <strong>@party.Location</strong> <br>
+                        👥 <strong>@party.Invitations.Count</strong> Invites
+                    </p>
                     <a asp-action="Manage" asp-route-id="@party.Id" class="btn btn-info">Manage</a>
                     <a asp-action="Edit" asp-route-id="@party.Id" class="btn btn-warning">Edit</a>
                     <a asp-action="Delete" asp-route-id="@party.Id" class="btn btn-danger">Delete</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
 
 @if (ViewBag.FirstVisit != null)
 {

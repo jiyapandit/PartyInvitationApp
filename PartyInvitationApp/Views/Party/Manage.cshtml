@@ -1,28 +1,22 @@
 ﻿@model PartyInvitationApp.Models.Party
 @{
-    Layout = "_Layout.cshtml";
     ViewData["Title"] = "Manage Party";
 }
 
-<h2>Manage Party: @Model.Description</h2>
-<p>
-    Date: @Model.DateOfParty.ToShortDateString() <br />
-    Location: @Model.Location
-</p>
+<h2 class="text-center">Manage Party: @Model.Description</h2>
 
-<h4>Stats:</h4>
-<ul>
-    <li>Not Sent: @ViewBag.NotSent</li>
-    <li>Sent: @ViewBag.Sent</li>
-    <li>Yes: @ViewBag.YesCount</li>
-    <li>No: @ViewBag.NoCount</li>
-</ul>
+<div class="card p-4 mt-3">
+    <h5>🎉 Party Details</h5>
+    <p>
+        📅 Date: <strong>@Model.DateOfParty.ToShortDateString()</strong> <br>
+        📍 Location: <strong>@Model.Location</strong>
+    </p>
+</div>
 
-<hr />
-
-<h3>Invitations</h3>
-<table class="table">
-    <thead>
+<!-- Invitations List -->
+<h4 class="mt-4">📩 Invitations</h4>
+<table class="table table-striped mt-3">
+    <thead class="table-dark">
         <tr>
             <th>Guest Name</th>
             <th>Guest Email</th>
@@ -38,15 +32,19 @@
                 <td>
                     @if (invite.Status == InvitationStatus.InviteSent)
                     {
-                        <span class="text-info">Invitation Sent</span>
+                        <span class="badge bg-primary">Sent</span>
                     }
                     else if (invite.Status == InvitationStatus.RespondedYes)
                     {
-                        <span class="text-success">Attending</span>
+                        <span class="badge bg-success">Attending</span>
                     }
                     else if (invite.Status == InvitationStatus.RespondedNo)
                     {
-                        <span class="text-danger">Not Attending</span>
+                        <span class="badge bg-danger">Not Attending</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Not Sent</span>
                     }
                 </td>
             </tr>
@@ -54,46 +52,29 @@
     </tbody>
 </table>
 
-<form asp-action="Create" asp-controller="Invitation" method="post">
-    <input type="hidden" name="partyId" value="@Model.Id" />  <!-- ✅ Ensure PartyId is set -->
+<!-- New Invitation Form -->
+<h4 class="mt-4">📧 Send an Invitation</h4>
+<form asp-action="Create" asp-controller="Invitation" method="post" class="mt-3">
+    <input type="hidden" name="partyId" value="@Model.Id" />
 
-    <div class="form-group">
-        <label>Guest Name</label>
+    <div class="mb-3">
+        <label class="form-label">Guest Name</label>
         <input name="GuestName" class="form-control" required />
     </div>
-    <div class="form-group">
-        <label>Guest Email</label>
+
+    <div class="mb-3">
+        <label class="form-label">Guest Email</label>
         <input name="GuestEmail" type="email" class="form-control" required />
     </div>
 
-    <button type="submit" class="btn btn-primary">Add & Send Email</button>
+    <button type="submit" class="btn btn-primary">📩 Send Invitation</button>
 </form>
 
-
-<!-- ADD NEW INVITATION FORM -->
-<h4>Add a New Invitation</h4>
-<form asp-action="Create" asp-controller="Invitation" method="post">
+<!-- Send All Button -->
+<form asp-action="SendAll" asp-controller="Invitation" method="post" class="mt-3">
     <input type="hidden" name="partyId" value="@Model.Id" />
-    <div class="form-group">
-        <label>Guest Name</label>
-        <input name="GuestName" class="form-control" required />
-    </div>
-    <div class="form-group">
-        <label>Guest Email</label>
-        <input name="GuestEmail" type="email" class="form-control" required />
-    </div>
-    <button type="submit" class="btn btn-primary">Add &amp; Send Email</button>
-</form>
-
-
-<hr />
-
-<!-- SEND ALL UNSENT INVITATIONS -->
-<h4>Or Send All Unsent Invitations</h4>
-<form asp-action="SendAll" asp-controller="Invitation" method="post">
-    <input type="hidden" name="partyId" value="@Model.Id" />
-    <button type="submit" class="btn btn-success">Send All Unsent</button>
+    <button type="submit" class="btn btn-success">🚀 Send All Unsent</button>
 </form>
 
 <hr />
-<a asp-action="Index" class="btn btn-secondary mt-3">Back to All Parties</a>
+<a asp-action="Index" class="btn btn-secondary mt-3">⬅ Back to Parties</a>

@@ -4,7 +4,9 @@
 }
 
 <h2>Invitation response</h2>
+
 <p>You have been invited to the "<strong>@Model.Party.Description</strong>" party!</p>
+
 <p>Hey @Model.GuestName, you have been invited to the gathering at <strong>@Model.Party.Location</strong> on <strong>@Model.Party.DateOfParty.ToShortDateString()</strong>.</p>
 
 <form asp-action="Respond" method="post">
